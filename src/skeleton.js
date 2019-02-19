@@ -7,12 +7,15 @@ const { sleep, genScriptContent, htmlMinify, collectImportantComments } = requir
 
 class Skeleton {
   constructor(options = {}, log) {
-    this.options = options
-    this.browser = null
-    this.scriptContent = ''
-    this.pages = new Set()
-    this.log = log
-    this.initialize()
+    return (async () => {
+      this.options = options
+      this.browser = null
+      this.scriptContent = ''
+      this.pages = new Set()
+      this.log = log
+      await this.initialize()
+      return this
+    })()
   }
 
   // Launch headless Chrome by puppeteer and load script
@@ -251,7 +254,7 @@ class Skeleton {
       .replace('$$css$$', finalCss)
       .replace('$$html$$', cleanedHtml)
     const result = {
-      originalRoute: route,
+      originalRoute: route || '',
       route: await page.evaluate('window.location.pathname'),
       html: htmlMinify(shellHtml, false)
     }
