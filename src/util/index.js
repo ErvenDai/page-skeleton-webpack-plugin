@@ -12,6 +12,7 @@ const { html2json, json2html } = require('html2json')
 const htmlBeautify = require('js-beautify').html_beautify
 const { htmlBeautifyConfig } = require('../config/config')
 
+
 const getCleanedShellHtml = (html) => {
   const STYLE_REG = /<style>[\s\S]+?<\/style>/
   const BODY_REG = /<body>([\s\S]+?)<\/body>/
@@ -36,6 +37,16 @@ async function writeShell(routesData, options) {
     return Promise.resolve()
   }))
 }
+
+async function injectSkeleton(routeData, options) {
+  const { minify: minOptions } = options
+  const { targetFile, html } = routeData
+  const minifiedHtml = htmlMinify(getCleanedShellHtml(html), minOptions)
+  const originHtml = await promisify(fs.readFile)(path.resolve(process.cwd(), targetFile), 'utf-8')
+  const finalHtml = originHtml.replace('<!-- shell -->', minifiedHtml)
+  await promisify(fs.writeFile)(targetFile, finalHtml, 'utf-8')
+}
+
 
 function sleep(duration) {
   return new Promise((resolve) => {
@@ -189,5 +200,6 @@ module.exports = {
   genScriptContent,
   addDprAndFontSize,
   getLocalIpAddress,
-  collectImportantComments
+  collectImportantComments,
+  injectSkeleton
 }

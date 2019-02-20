@@ -90,7 +90,7 @@
     },
     methods: {
       writeShell() {
-        this.$store.dispatch('WRITE_SHELL')
+        this.$store.dispatch('WRITE_SHELL', { route: this.currentRoute })
       },
       handleMessageReceive(data) {
         this.$message(data)

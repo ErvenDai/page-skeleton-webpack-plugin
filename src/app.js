@@ -13,7 +13,7 @@ const hasha = require('hasha')
 const merge = require('lodash/merge')
 const { defaultOptions, staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
-const { generateQR, addDprAndFontSize, getLocalIpAddress, sockWrite } = require('./util/index')
+const { generateQR, addDprAndFontSize, getLocalIpAddress, sockWrite, injectSkeleton } = require('./util/index')
 
 
 const myFs = new MemoryFileSystem()
@@ -67,6 +67,7 @@ class App extends EventEmitter {
       const fileName = await writeMagicHtml(html)
       const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
       this.routesData[route] = {
+        targetFile: targets.index.targetFile,
         url: targets.index.url,
         skeletonPageUrl,
         qrCode: await generateQR(skeletonPageUrl),
@@ -136,6 +137,20 @@ class App extends EventEmitter {
             this.routesData[route].skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
             sockWrite([conn], 'update', JSON.stringify(this.routesData))
           }
+          break
+        }
+        case 'writeShellFile': {
+          sockWrite([conn], 'console', 'before write shell files...')
+          try {
+            const { route } = msg.data
+            // 只写入当前确定修改好的骨架
+            await injectSkeleton(this.routesData[route], options)
+          } catch (err) {
+            console.log(err)
+          }
+          const afterWriteMsg = 'Write files successfully...'
+          console.log(afterWriteMsg)
+          sockWrite([conn], 'console', afterWriteMsg)
           break
         }
         default: break

@@ -4,8 +4,8 @@ module.exports = {
   headless: true,
   targets: {
     index: {
-      url: 'https://page.banma.test.sankuai.com/app/referralBonus/invite?jump_source=6&announcementId=0&uuid=876391E8933BFBA20871CF09AD7081BC6671370C4B52CD9EE91307EA8136D014&station_id=1715&longitude=-122.406417&time=1550633348598.153&appType=3&latitude=37.785834&osType=2&city_id=110100&mtUserToken=r7rhq3XomILlNAU92nNITqfvIr4AAAAA6AcAABS-enIoq2655SAGz7KUmWr5WAkpjBw6gTg1DyJKwpdYrH7syDywaSUVKVTgR5GCYg&mtUserId=54434162&orgCode=1&appVersion=4.6.0.3&__skbk=A191772B3F26FFE88CF8FBE2F519F553&setKey=100110000',
-      targetHtml: './test.html'
+      url: 'http://page.banma.test.sankuai.com/app/riderCommunity/app?uuid=0C0A11D7FFCA80F333B92E0E3E80A4C8B11D941A678B42E5C0612D5A41F76B6E&workCityId=110100&speed=-1&provider=iOS&longitude=116.4865227269363&time=1541733321049.718&osVersion=11.3&appType=1&osType=2&city_id=110100&mtUserToken=hlLSBM8L2xjrFphcL9m6joFh9CAAAAAAWQcAANvNAr5NvnwIkoJ23lfQSRgpuqBnLE3-DA7QOKRvSKg4-X9lgwpB0u0vNzWPTZvljw&mtUserId=1298204943&latitude=40.00780169029385&accuracy=65&appVersion=4.1.1&__skbk=2E9E21B4959B8BE1CC3B7E8C23B87575&setKey=100110000#/index',
+      targetFile: './test.html'
     }
   }
 }

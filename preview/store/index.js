@@ -35,10 +35,10 @@ const actions = {
   GET_URL({ commit }, data) {
     commit('SET_URL', data)
   },
-  WRITE_SHELL({ commit }) {
-    socketWrite('writeShellFile')
+  WRITE_SHELL({ commit }, route) {
+    socketWrite('writeShellFile', route)
   },
-  SAVE_CODE ({ commit }, value) {
+  SAVE_CODE({ commit }, value) {
     socketWrite('saveShellFile', value)
   },
   WRITE_SHELL_SUCCESS({ commit }, message) {
