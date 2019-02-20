@@ -78,21 +78,25 @@ class Skeleton {
     })
     // To build a map of all downloaded CSS (css use link tag)
     page.on('response', (response) => {
-      const requestUrl = response.url()
-      const ct = response.headers()['content-type'] || ''
-      if (response.ok && !response.ok()) {
-        throw new Error(`${response.status} on ${requestUrl}`)
-      }
+      try {
+        const requestUrl = response.url()
+        const ct = response.headers()['content-type'] || ''
+        if (response.ok && !response.ok()) {
+          throw new Error(`${response.status} on ${requestUrl}`)
+        }
 
-      if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
-        response.text().then((text) => {
-          const ast = parse(text, {
-            parseValue: false,
-            parseRulePrelude: false
+        if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
+          response.text().then((text) => {
+            const ast = parse(text, {
+              parseValue: false,
+              parseRulePrelude: false
+            })
+            stylesheetAstObjects[requestUrl] = toPlainObject(ast)
+            stylesheetContents[requestUrl] = text
           })
-          stylesheetAstObjects[requestUrl] = toPlainObject(ast)
-          stylesheetContents[requestUrl] = text
-        })
+        }
+      } catch (err) {
+        console.log('page ajax error', err)
       }
     })
     page.on('pageerror', (error) => {
