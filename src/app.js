@@ -9,43 +9,12 @@ const open = require('opn')
 const sockjs = require('sockjs')
 const express = require('express')
 const MemoryFileSystem = require('memory-fs')
-const hasha = require('hasha')
-const merge = require('lodash/merge')
-const { defaultOptions, staticPath } = require('./config/config')
+const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
-const { generateQR, addDprAndFontSize, getLocalIpAddress, sockWrite, injectSkeleton } = require('./util/index')
+const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions, writeMagicHtml } = require('./util/index')
 
 
 const myFs = new MemoryFileSystem()
-
-
-// const Browser = require('./util/browser')
-// const { genScriptContent } = require('./util/index')
-
-function getOptions() {
-  const userConfigPath = `${process.cwd()}/skeleton.config.js`
-  let userOptions = {}
-  if (fs.existsSync(userConfigPath)) {
-    userOptions = require(userConfigPath) // eslint-disable-line
-  }
-  return merge({ staticPath }, defaultOptions, userOptions)
-}
-/**
- * 将 sleleton 模块生成的 html 写入到内存中。
- */
-async function writeMagicHtml(html) {
-  const decHtml = addDprAndFontSize(html)
-  try {
-    const pathName = path.join(__dirname, staticPath)
-    let fileName = await hasha(decHtml, { algorithm: 'md5' })
-    fileName += '.html'
-    myFs.mkdirpSync(pathName)
-    await promisify(myFs.writeFile.bind(myFs))(path.join(pathName, fileName), decHtml, 'utf8')
-    return fileName
-  } catch (err) {
-    console.log(err)
-  }
-}
 class App extends EventEmitter {
   constructor() {
     super()
@@ -105,7 +74,6 @@ class App extends EventEmitter {
       })
 
     app.get('/preview.html', async (req, res) => {
-
       fs.createReadStream(path.resolve(__dirname, '..', 'preview/dist/index.html')).pipe(res)
     })
 
