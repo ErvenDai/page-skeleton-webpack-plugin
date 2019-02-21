@@ -45,7 +45,7 @@ function traverse(options) {
   ;(function preTraverse(ele) {
     const styles = getComputedStyle(ele)
     const hasPseudoEle = checkHasPseudoEle(ele)
-    if (!inViewPort(ele) || DISPLAY_NONE.test(ele.getAttribute('style'))) {
+    if (!inViewPort(ele) || (styles.getPropertyValue('display') === 'none') && !['HEAD', 'STYLE', 'SCRIPT', 'META', 'TITLE', ].includes(ele.tagName) ) {
       return toRemove.push(ele)
     }
     if (~grayEle.indexOf(ele)) { // eslint-disable-line no-bitwise
@@ -56,11 +56,13 @@ function traverse(options) {
     if (hasPseudoEle) {
       pseudos.push(hasPseudoEle)
     }
-
-    if (checkHasBorder(styles)) {
+    if(['outset', 'inset', 'ridge', 'groove', 'double'].includes(styles.getPropertyValue('border-style'))) {
       ele.style.border = 'none'
     }
-
+    if(styles.getPropertyValue('border-color')) {
+      ele.style.borderColor = '#EEEEEE';
+    }
+    // 列表项
     if (ele.children.length > 0 && /UL|OL/.test(ele.tagName)) {
       handler.list(ele)
     }
