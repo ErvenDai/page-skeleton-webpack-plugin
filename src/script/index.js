@@ -7,7 +7,6 @@ var Skeleton = (function (exports) {
   const TRANSPARENT = 'transparent';
   const EXT_REG = /\.(jpeg|jpg|png|gif|svg|webp)/;
   const GRADIENT_REG = /gradient/;
-  const DISPLAY_NONE = /display:\s*none/;
   const PRE_REMOVE_TAGS = ['script'];
   const AFTER_REMOVE_TAGS = ['title', 'meta', 'style'];
   const CLASS_NAME_PREFEX = 'sk-';
@@ -56,15 +55,13 @@ var Skeleton = (function (exports) {
   };
 
   const checkHasPseudoEle = (ele) => {
-    const hasBefore = getComputedStyle(ele, '::before').getPropertyValue('content') !== '';
-    const hasAfter = getComputedStyle(ele, '::after').getPropertyValue('content') !== '';
+    const hasBefore = !['none', 'normal'].includes(getComputedStyle(ele, '::before').getPropertyValue('content'));
+    const hasAfter = !['none', 'normal'].includes(getComputedStyle(ele, '::after').getPropertyValue('content'));
     if (hasBefore || hasAfter) {
       return { hasBefore, hasAfter, ele }
     }
     return false
   };
-
-  const checkHasBorder = (styles) => styles.getPropertyValue('border-style') !== 'none';
 
   const getOppositeShape = (shape) => shape === 'circle' ? 'rect' : 'circle';
 
@@ -601,7 +598,7 @@ var Skeleton = (function (exports) {
     ;(function preTraverse(ele) {
       const styles = getComputedStyle(ele);
       const hasPseudoEle = checkHasPseudoEle(ele);
-      if (!inViewPort(ele) || DISPLAY_NONE.test(ele.getAttribute('style'))) {
+      if (!inViewPort(ele) || (styles.getPropertyValue('display') === 'none') && !['HEAD', 'STYLE', 'SCRIPT', 'META', 'TITLE', ].includes(ele.tagName) ) {
         return toRemove.push(ele)
       }
       if (~grayEle.indexOf(ele)) { // eslint-disable-line no-bitwise
@@ -612,11 +609,13 @@ var Skeleton = (function (exports) {
       if (hasPseudoEle) {
         pseudos.push(hasPseudoEle);
       }
-
-      if (checkHasBorder(styles)) {
+      if(['outset', 'inset', 'ridge', 'groove', 'double'].includes(styles.getPropertyValue('border-style'))) {
         ele.style.border = 'none';
       }
-
+      if(styles.getPropertyValue('border-color')) {
+        ele.style.borderColor = '#EEEEEE';
+      }
+      // 列表项
       if (ele.children.length > 0 && /UL|OL/.test(ele.tagName)) {
         listHandle(ele);
       }

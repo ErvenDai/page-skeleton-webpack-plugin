@@ -16,8 +16,8 @@ export const inViewPort = (ele) => {
 }
 
 export const checkHasPseudoEle = (ele) => {
-  const hasBefore = getComputedStyle(ele, '::before').getPropertyValue('content') !== ''
-  const hasAfter = getComputedStyle(ele, '::after').getPropertyValue('content') !== ''
+  const hasBefore = !['none', 'normal'].includes(getComputedStyle(ele, '::before').getPropertyValue('content'))
+  const hasAfter = !['none', 'normal'].includes(getComputedStyle(ele, '::after').getPropertyValue('content'))
   if (hasBefore || hasAfter) {
     return { hasBefore, hasAfter, ele }
   }
