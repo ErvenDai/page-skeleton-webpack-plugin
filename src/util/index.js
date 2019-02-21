@@ -7,10 +7,12 @@ const path = require('path')
 const fse = require('fs-extra')
 const weblog = require('webpack-log')
 const QRCode = require('qrcode')
+const merge = require('lodash/merge')
 const { minify } = require('html-minifier')
 const { html2json, json2html } = require('html2json')
 const htmlBeautify = require('js-beautify').html_beautify
 const { htmlBeautifyConfig } = require('../config/config')
+const { defaultOptions, staticPath } = require('../config/config')
 
 
 const getCleanedShellHtml = (html) => {
@@ -187,6 +189,15 @@ const getLocalIpAddress = () => {
 
 const snakeToCamel = name => name.replace(/-([a-z])/g, (_, p1) => p1.toUpperCase())
 
+const getOptions = () => {
+  const userConfigPath = `${process.cwd()}/skeleton.config.js`
+  let userOptions = {}
+  if (fs.existsSync(userConfigPath)) {
+    userOptions = require(userConfigPath) // eslint-disable-line
+  }
+  return merge({ staticPath }, defaultOptions, userOptions)
+}
+
 module.exports = {
   createLog,
   sleep,
@@ -201,5 +212,6 @@ module.exports = {
   addDprAndFontSize,
   getLocalIpAddress,
   collectImportantComments,
-  injectSkeleton
+  injectSkeleton,
+  getOptions,
 }

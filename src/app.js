@@ -7,14 +7,30 @@ const path = require('path')
 const { promisify } = require('util')
 const open = require('opn')
 const sockjs = require('sockjs')
+const hasha = require('hasha')
 const express = require('express')
 const MemoryFileSystem = require('memory-fs')
 const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
-const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions, writeMagicHtml } = require('./util/index')
-
+const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions, addDprAndFontSize } = require('./util/index')
 
 const myFs = new MemoryFileSystem()
+/**
+ * 将 sleleton 模块生成的 html 写入到内存中。
+ */
+const writeMagicHtml = async (html) => {
+  const decHtml = addDprAndFontSize(html)
+  try {
+    const pathName = path.join(__dirname, staticPath)
+    let fileName = await hasha(decHtml, { algorithm: 'md5' })
+    fileName += '.html'
+    myFs.mkdirpSync(pathName)
+    await promisify(myFs.writeFile.bind(myFs))(path.join(pathName, fileName), decHtml, 'utf8')
+    return fileName
+  } catch (err) {
+    console.log(err)
+  }
+}
 class App extends EventEmitter {
   constructor() {
     super()
@@ -34,6 +50,7 @@ class App extends EventEmitter {
       // CACHE html
       this.routesData = {}
       const fileName = await writeMagicHtml(html)
+      console.log('fileName', fileName)
       const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
       this.routesData[route] = {
         targetFile: targets.index.targetFile,
@@ -76,6 +93,9 @@ class App extends EventEmitter {
     app.get('/preview.html', async (req, res) => {
       fs.createReadStream(path.resolve(__dirname, '..', 'preview/dist/index.html')).pipe(res)
     })
+    app.get('/index.js', async (req, res) => {
+      fs.createReadStream(path.resolve(__dirname, '..', 'src/script/index.js')).pipe(res)
+    })
 
     app.get('/:filename', async (req, res) => {
       const { filename } = req.params
@@ -102,6 +122,7 @@ class App extends EventEmitter {
           if (html) {
             this.routesData[route].html = html
             const fileName = await writeMagicHtml(html)
+            console.log('fileName', fileName)
             this.routesData[route].skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
             sockWrite([conn], 'update', JSON.stringify(this.routesData))
           }
