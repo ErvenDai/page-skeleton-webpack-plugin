@@ -598,7 +598,7 @@ var Skeleton = (function (exports) {
     ;(function preTraverse(ele) {
       const styles = getComputedStyle(ele);
       const hasPseudoEle = checkHasPseudoEle(ele);
-      if (!inViewPort(ele) || (styles.getPropertyValue('display') === 'none') && !['HEAD', 'STYLE', 'SCRIPT', 'META', 'TITLE', ].includes(ele.tagName) ) {
+      if (!inViewPort(ele) || (styles.getPropertyValue('display') === 'none') && !['HEAD', 'STYLE', 'SCRIPT', 'META', 'TITLE', 'LINK'].includes(ele.tagName) ) {
         return toRemove.push(ele)
       }
       if (~grayEle.indexOf(ele)) { // eslint-disable-line no-bitwise
