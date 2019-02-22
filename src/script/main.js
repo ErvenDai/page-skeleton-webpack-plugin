@@ -180,18 +180,38 @@ function genSkeleton(options) {
   }
 }
 
+const getHtmlAttrStr = (root) => {
+  const style = root.style
+  const dataset = root.dataset
+  const className = root.className
+  const styleStr = style.fontSize ? `style="font-size: ${style.fontSize}"` : ''
+  const datasetStr = dataset ? Object.keys(dataset).map(key => `dara-${key}="${dataset[key]}"`).join(' ') : ''
+  const classNameStr = className ? `class="${className}"` : ''
+  return `${styleStr} ${classNameStr} ${datasetStr}`
+}
+
 function getHtmlAndStyle() {
   const root = document.documentElement
+  const metaStr = Array.from(document.querySelectorAll('meta')).map(item => item.outerHTML).join(' ')
+  const htmlAttrStr = getHtmlAttrStr(root)
+  const bodyFontSize = document.body.style.fontSize
+  const bodyStyleStr = bodyFontSize ? `style="font-size=${bodyFontSize};` : ''
   const rawHtml = root.outerHTML
-  const styles = Array.from($$('style')).map(style => style.innerHTML || style.innerText)
-  Array.from($$(AFTER_REMOVE_TAGS.join(','))).forEach(ele => removeElement(ele))
   // fix html parser can not handle `<div ubt-click=3659 ubt-data="{&quot;restaurant_id&quot;:1236835}" >`
   // need replace `&quot;` into `'`
   const cleanedHtml = document.body.innerHTML.replace(/&quot;/g, "'")
+  const styles = Array.from($$('style')).map(style => style.innerHTML || style.innerText)
+  Array.from($$(AFTER_REMOVE_TAGS.join(','))).forEach(ele => removeElement(ele))
   return {
     rawHtml,
     styles,
-    cleanedHtml
+    cleanedHtml,
+    htmlInfo: {
+      htmlAttrStr,
+      bodyStyleStr,
+      metaStr,
+      a: document.querySelectorAll('meta')
+    }
   }
 }
 

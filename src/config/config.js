@@ -33,7 +33,7 @@ const defaultOptions = {
     shape: 'circle',
     shapeOpposite: []
   },
-  device: 'iPhone 6 Plus',
+  device: 'iPhone 6',
   debug: false,
   minify: {
     minifyCSS: { level: 2 },

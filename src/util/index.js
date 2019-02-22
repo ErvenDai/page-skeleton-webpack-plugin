@@ -213,5 +213,5 @@ module.exports = {
   getLocalIpAddress,
   collectImportantComments,
   injectSkeleton,
-  getOptions,
+  getOptions
 }

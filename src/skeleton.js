@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors')
 const { parse, toPlainObject, fromPlainObject, generate } = require('css-tree')
-const { sleep, genScriptContent, htmlMinify, collectImportantComments } = require('./util')
+const { sleep, genScriptContent, htmlMinify, collectImportantComments, getHtmlAttrString } = require('./util')
 
 class Skeleton {
   constructor(options = {}, log) {
@@ -137,7 +137,7 @@ class Skeleton {
 
     await this.makeSkeleton(page)
 
-    const { styles, cleanedHtml } = await page.evaluate(() => Skeleton.getHtmlAndStyle())
+    const { styles, cleanedHtml, htmlInfo } = await page.evaluate(() => Skeleton.getHtmlAndStyle())
 
     const stylesheetAstArray = styles.map((style) => {
       const ast = parse(style, {
@@ -241,16 +241,20 @@ class Skeleton {
     const finalCss = collectImportantComments(allCleanedCSS)
     // finalCss = minify(finalCss).css ? `html-minifier` use `clean-css` as css minifier
     // so don't need to use another mimifier.
+    // add font-size dpr
+    const { htmlAttrStr, metaStr, bodyStyleStr } = htmlInfo
+
+    console.log('yeyey', htmlInfo)
     let shellHtml = `<!DOCTYPE html>
-      <html lang="en">
+      <html ${htmlAttrStr}>
       <head>
-        <meta charset="UTF-8">
+        ${metaStr}
         <title>Page Skeleton</title>
         <style>
           $$css$$
         </style>
       </head>
-      <body>
+      <body ${bodyStyleStr}>
         $$html$$
       </body>
       </html>`

@@ -12,20 +12,19 @@ const express = require('express')
 const MemoryFileSystem = require('memory-fs')
 const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
-const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions, addDprAndFontSize } = require('./util/index')
+const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions } = require('./util/index')
 
 const myFs = new MemoryFileSystem()
 /**
  * 将 sleleton 模块生成的 html 写入到内存中。
  */
 const writeMagicHtml = async (html) => {
-  const decHtml = addDprAndFontSize(html)
   try {
     const pathName = path.join(__dirname, staticPath)
-    let fileName = await hasha(decHtml, { algorithm: 'md5' })
+    let fileName = await hasha(html, { algorithm: 'md5' })
     fileName += '.html'
     myFs.mkdirpSync(pathName)
-    await promisify(myFs.writeFile.bind(myFs))(path.join(pathName, fileName), decHtml, 'utf8')
+    await promisify(myFs.writeFile.bind(myFs))(path.join(pathName, fileName), html, 'utf8')
     return fileName
   } catch (err) {
     console.log(err)
@@ -62,7 +61,7 @@ class App extends EventEmitter {
       console.log('skeletonPageUrl', skeletonPageUrl)
     } catch (err) {
       const message = err.message || 'generate skeleton screen failed.'
-      console.log(message)
+      console.log('message', message)
     }
   }
   async listen() {
