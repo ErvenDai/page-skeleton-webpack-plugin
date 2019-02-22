@@ -77,7 +77,8 @@ function textHandler(ele, { color }, cssUnit, decimal) {
     fontSize,
     textAlign,
     wordSpacing,
-    wordBreak
+    wordBreak,
+    display
   } = comStyle
 
   if (!/\d/.test(lineHeight)) {
@@ -135,7 +136,10 @@ function textHandler(ele, { color }, cssUnit, decimal) {
       case 'left': // do nothing
         break
       case 'center':
-        ele.style.backgroundPositionX = '50%'
+        // flex布局 textAlign 不起作用
+        if(display !== 'flex') {
+          ele.style.backgroundPositionX = '50%'
+        }
         break
       case 'right':
         ele.style.backgroundPositionX = '100%'
