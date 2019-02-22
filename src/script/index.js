@@ -55,8 +55,10 @@ var Skeleton = (function (exports) {
   };
 
   const checkHasPseudoEle = (ele) => {
-    const hasBefore = !['none', 'normal'].includes(getComputedStyle(ele, '::before').getPropertyValue('content'));
-    const hasAfter = !['none', 'normal'].includes(getComputedStyle(ele, '::after').getPropertyValue('content'));
+    // const hasBefore = !['none', 'normal'].includes(getComputedStyle(ele, '::before').getPropertyValue('content'))
+    // const hasAfter = !['none', 'normal'].includes(getComputedStyle(ele, '::after').getPropertyValue('content'))
+    const hasBefore = false;
+    const hasAfter = false;
     if (hasBefore || hasAfter) {
       return { hasBefore, hasAfter, ele }
     }
@@ -365,7 +367,8 @@ var Skeleton = (function (exports) {
       fontSize,
       textAlign,
       wordSpacing,
-      wordBreak
+      wordBreak,
+      display
     } = comStyle;
 
     if (!/\d/.test(lineHeight)) {
@@ -423,7 +426,10 @@ var Skeleton = (function (exports) {
         case 'left': // do nothing
           break
         case 'center':
-          ele.style.backgroundPositionX = '50%';
+          // flex布局 textAlign 不起作用
+          if(display !== 'flex') {
+            ele.style.backgroundPositionX = '50%';
+          }
           break
         case 'right':
           ele.style.backgroundPositionX = '100%';
