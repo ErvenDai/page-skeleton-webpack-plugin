@@ -33,15 +33,10 @@ class Skeleton {
   }
 
   async newPage() {
-    const { device, debug } = this.options
+    const { device } = this.options
     const page = await this.browser.newPage()
     this.pages.add(page)
     await page.emulate(devices[device])
-    if (debug) {
-      page.on('console', (...args) => {
-        this.log.info(...args)
-      })
-    }
     return page
   }
 
@@ -61,10 +56,16 @@ class Skeleton {
   }
 
   async genHtml(url, route) {
+    const { debug } = this.options
     const stylesheetAstObjects = {}
     const stylesheetContents = {}
 
     const page = await this.newPage()
+    if (debug) {
+      page.on('console', (...args) => {
+        this.log.info(...args)
+      })
+    }
     const { cookies, storagies = {}, sessionStoragies = {} } = this.options
 
     await page.setRequestInterception(true)

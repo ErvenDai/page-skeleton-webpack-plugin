@@ -74,7 +74,6 @@ function textHandler(ele, { color }, cssUnit, decimal) {
     paddingRight,
     paddingBottom,
     paddingLeft,
-    position: pos,
     fontSize,
     textAlign,
     wordSpacing,
@@ -86,7 +85,7 @@ function textHandler(ele, { color }, cssUnit, decimal) {
     lineHeight = `${fontSizeNum * 1.4}px`
   }
 
-  const position = ['fixed', 'absolute', 'flex'].find(p => p === pos) ? pos : 'relative'
+
 
   const height = ele.offsetHeight
   // Math.floor
@@ -105,9 +104,7 @@ function textHandler(ele, { color }, cssUnit, decimal) {
   const rule = `{
     background-image: linear-gradient(transparent ${firstColorPoint}%, ${color} 0%, ${color} ${secondColorPoint}%, transparent 0%) !important;
     background-size: ${backgroundSize};
-    position: ${position} !important;
   }`
-
   const invariableClassName = CLASS_NAME_PREFEX + 'text'
 
   const invariableRule = `{

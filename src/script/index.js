@@ -362,7 +362,6 @@ var Skeleton = (function (exports) {
       paddingRight,
       paddingBottom,
       paddingLeft,
-      position: pos,
       fontSize,
       textAlign,
       wordSpacing,
@@ -374,7 +373,7 @@ var Skeleton = (function (exports) {
       lineHeight = `${fontSizeNum * 1.4}px`;
     }
 
-    const position = ['fixed', 'absolute', 'flex'].find(p => p === pos) ? pos : 'relative';
+
 
     const height = ele.offsetHeight;
     // Math.floor
@@ -393,9 +392,7 @@ var Skeleton = (function (exports) {
     const rule = `{
     background-image: linear-gradient(transparent ${firstColorPoint}%, ${color} 0%, ${color} ${secondColorPoint}%, transparent 0%) !important;
     background-size: ${backgroundSize};
-    position: ${position} !important;
   }`;
-
     const invariableClassName = CLASS_NAME_PREFEX + 'text';
 
     const invariableRule = `{

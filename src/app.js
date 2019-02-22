@@ -12,7 +12,7 @@ const express = require('express')
 const MemoryFileSystem = require('memory-fs')
 const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
-const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions } = require('./util/index')
+const { generateQR, getLocalIpAddress, sockWrite, injectSkeleton, getOptions, createLog } = require('./util/index')
 
 const myFs = new MemoryFileSystem()
 /**
@@ -40,10 +40,11 @@ class App extends EventEmitter {
     this.previewPageUrl = `http://${this.host}:${this.port}/preview.html`
     this.routesData = null
     this.sockets = []
+    this.log = createLog(this.options)
   }
   async generateSkeletonHTML() {
     const { targets } = this.options
-    const skeleton = await new Skeleton(this.options)
+    const skeleton = await new Skeleton(this.options, this.log)
     try {
       const { html, route } = await skeleton.genHtml(targets.index.url)
       // CACHE html

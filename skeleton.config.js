@@ -2,6 +2,7 @@
 
 module.exports = {
   headless: true,
+  // debug: true,
   targets: {
     index: {
       url: 'https://page.banma.test.sankuai.com/app/zbGrade/gradeDetail?uuid=72406F28CC4D42A1EDBD12494AC9C9FE0926C32F6DBC8A30B11B8F2F8F748F1B&workCityId=110100&speed=-1&provider=iOS&longitude=-122.406417&riderImg=http://p1.meituan.net/xianfu/3d13c3fac967326574bf899e562c4c3587110.jpg&time=1550728122358.172&appType=1&osType=2&city_id=110100&nameCertification=1&mtUserToken=E2f4UOA_YlkD_HFgLH72wI4ITz8AAAAA6AcAAPM28O-iaj4bXyOgXMlmnqStiTw2qBRK4aYPS0pDDPUXgieW0olPBRXs_gvdQ5GnRw&mtUserId=1298204943&osVersion=10.0&latitude=37.785834&accuracy=5&appVersion=4.4.0&__skbk=FFDCCB031AB975C6A632A783B4156233&setKey=100110000',
