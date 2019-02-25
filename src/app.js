@@ -43,20 +43,39 @@ class App extends EventEmitter {
     this.log = createLog(this.options)
   }
   async generateSkeletonHTML() {
-    const { targets } = this.options
+    const { targets, target, url, dir } = this.options
     const skeleton = await new Skeleton(this.options, this.log)
+    let resultUrl = ''
+    let resultTarget = ''
+    if (targets && dir && targets[dir]) {
+      resultUrl = targets[dir].url
+      resultTarget = targets[dir].target
+    }
+    if (url && target) {
+      resultUrl = url
+      resultTarget = target
+    }
+    if (!resultUrl || !resultTarget) {
+      console.log('please input url and target')
+      process.exit()
+    }
+
+    // 找不到target也直接关掉应用
+    const targetPath = path.resolve(process.cwd(), target)
+    if (!fs.existsSync(targetPath)) {
+      console.log(`can not find the target ${targetPath}`)
+      process.exit()
+    }
+
     try {
-      const { html, route, device } = await skeleton.genHtml(targets.index.url)
+      const { html, route, device } = await skeleton.genHtml(resultUrl)
       // CACHE html
       this.routesData = {}
       const fileName = await writeMagicHtml(html)
-      console.log('fileName', fileName)
-      console.log('device', device)
-      console.log('route', route)
       const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
       this.routesData[route] = {
-        targetFile: targets.index.targetFile,
-        url: targets.index.url,
+        targetFile: resultTarget,
+        url: resultUrl,
         device,
         skeletonPageUrl,
         qrCode: await generateQR(skeletonPageUrl),
@@ -141,7 +160,6 @@ class App extends EventEmitter {
             console.log(err)
           }
           const afterWriteMsg = 'Write files successfully...'
-          console.log(afterWriteMsg)
           sockWrite([conn], 'console', afterWriteMsg)
           break
         }
