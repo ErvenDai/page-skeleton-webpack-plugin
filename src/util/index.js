@@ -17,7 +17,7 @@ const { defaultOptions, staticPath } = require('../config/config')
 
 const getCleanedShellHtml = (html) => {
   const STYLE_REG = /<style>[\s\S]+?<\/style>/
-  const BODY_REG = /<body>([\s\S]+?)<\/body>/
+  const BODY_REG = /<body(?:[\s\S]+?)>([\s\S]+?)<\/body>/
   const css = STYLE_REG.exec(html)[0]
   const cleanHtml = BODY_REG.exec(html)[1]
   return `${css}\n${cleanHtml}`

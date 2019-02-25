@@ -251,6 +251,7 @@ class Skeleton {
         ${metaStr}
         <title>Page Skeleton</title>
         <style>
+          * ::-webkit-scrollbar { width: 0 !important }
           $$css$$
         </style>
       </head>

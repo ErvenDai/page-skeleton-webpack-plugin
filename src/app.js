@@ -52,6 +52,7 @@ class App extends EventEmitter {
       const fileName = await writeMagicHtml(html)
       console.log('fileName', fileName)
       console.log('device', device)
+      console.log('route', route)
       const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
       this.routesData[route] = {
         targetFile: targets.index.targetFile,

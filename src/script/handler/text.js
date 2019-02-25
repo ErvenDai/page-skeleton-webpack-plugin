@@ -132,18 +132,18 @@ function textHandler(ele, { color }, cssUnit, decimal) {
     })
     const textWidthPercent = textWidth / (width - parseInt(paddingRight, 10) - parseInt(paddingLeft, 10))
     ele.style.backgroundSize = `${(textWidthPercent > 1 ? 1 : textWidthPercent) * 100}% ${px2relativeUtil(lineHeight, cssUnit, decimal)}`
+    if(display !== 'flex') {
+    // flex布局 textAlign 不起作用
     switch (textAlign) {
       case 'left': // do nothing
         break
       case 'center':
-        // flex布局 textAlign 不起作用
-        if(display !== 'flex') {
           ele.style.backgroundPositionX = '50%'
+          break
+          case 'right':
+          ele.style.backgroundPositionX = '100%'
+          break
         }
-        break
-      case 'right':
-        ele.style.backgroundPositionX = '100%'
-        break
     }
   }
 }

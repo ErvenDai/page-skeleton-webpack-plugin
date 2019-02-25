@@ -741,7 +741,7 @@ var Skeleton = (function (exports) {
     const metaStr = Array.from(document.querySelectorAll('meta')).map(item => item.outerHTML).join(' ');
     const htmlAttrStr = getHtmlAttrStr(root);
     const bodyFontSize = document.body.style.fontSize;
-    const bodyStyleStr = bodyFontSize ? `style="font-size=${bodyFontSize};` : '';
+    const bodyStyleStr = bodyFontSize ? `style="font-size: ${bodyFontSize};"` : '';
     const rawHtml = root.outerHTML;
     // fix html parser can not handle `<div ubt-click=3659 ubt-data="{&quot;restaurant_id&quot;:1236835}" >`
     // need replace `&quot;` into `'`
