@@ -1,8 +1,11 @@
 {
-  "name": "page-skeleton-webpack-plugin",
-  "version": "0.10.12",
+  "name": "@banmafe/gen-skeleton",
+  "version": "0.2.1",
   "description": "web site skeleton generator",
   "main": "index.js",
+  "bin": {
+    "gen-skeleton": "bin/gen-skeleton.js"
+  },
   "scripts": {
     "lint": "eslint src client/{index,sockjs,utils}.js",
     "beautify": "npm run lint -- --fix",
@@ -24,7 +27,7 @@
     "page skeleton",
     "webpack"
   ],
-  "author": "jocs",
+  "author": ["jocs", "dailuwen <dailuwen@meituan.com>"],
   "license": "MIT",
   "dependencies": {
     "chalk": "^2.4.1",

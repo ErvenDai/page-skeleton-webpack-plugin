@@ -5,8 +5,8 @@ module.exports = {
   debug: true,
   targets: {
     index: {
-      url: 'https://peisong.meituan.com/app/riderCommunity/app?city_id=222401&jump_source=6&mtUserToken=TqhdW5ZVywPGOWnhb3FemB5klBoAAAAAvgcAAFVRWPag4BVX9DiPkQ4-LGl8eYFY7TMoqBMNxjR0aUyC_5qe7tZ5fdATV8cOEACaAQ&appVersion=4.7.0.872&mtUserId=291436218&longitude=129.506431&latitude=42.883555&uuid=C9FE68DD9507069767B62F8FFDFD068F3D91F8AE3947EB38DF60DCC1AFDAEBA4&osType=1&workCityId=0&appType=3&setKey=100222400#/index',
-      targetFile: './test.html'
+      url: 'https://m.meituan.com',
+      targetFile: ''
     }
   }
 }
