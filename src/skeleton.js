@@ -245,7 +245,6 @@ class Skeleton {
     // add font-size dpr
     const { htmlAttrStr, metaStr, bodyStyleStr } = htmlInfo
 
-    console.log('yeyey', htmlInfo)
     let shellHtml = `<!DOCTYPE html>
       <html ${htmlAttrStr}>
       <head>
@@ -265,6 +264,10 @@ class Skeleton {
     const result = {
       originalRoute: route || '',
       route: await page.evaluate('window.location.pathname'),
+      device: {
+        width: await page.evaluate('window.screen.width'),
+        height: await page.evaluate('window.screen.height')
+      },
       html: htmlMinify(shellHtml, false)
     }
     await this.closePage(page)

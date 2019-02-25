@@ -46,15 +46,17 @@ class App extends EventEmitter {
     const { targets } = this.options
     const skeleton = await new Skeleton(this.options, this.log)
     try {
-      const { html, route } = await skeleton.genHtml(targets.index.url)
+      const { html, route, device } = await skeleton.genHtml(targets.index.url)
       // CACHE html
       this.routesData = {}
       const fileName = await writeMagicHtml(html)
       console.log('fileName', fileName)
+      console.log('device', device)
       const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
       this.routesData[route] = {
         targetFile: targets.index.targetFile,
         url: targets.index.url,
+        device,
         skeletonPageUrl,
         qrCode: await generateQR(skeletonPageUrl),
         html

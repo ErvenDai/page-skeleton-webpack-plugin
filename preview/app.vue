@@ -10,12 +10,14 @@
     <div class="main">
       <div class="left">
         <preview
+          :device="currentSkeletonScreen.device"
           :url="currentSkeletonScreen.url"
           type="origin"
         ></preview>
       </div>
       <div class="middle">
         <preview
+          :device="currentSkeletonScreen.device"
           :url="currentSkeletonScreen.skeletonPageUrl"
           type="skeleton"
         ></preview>
@@ -67,7 +69,11 @@
           url: '',
           skeletonPageUrl: '',
           qrCode: '',
-          html: ''
+          html: '',
+          device: {
+            width: 375,
+            height: 667
+          }
         }
       }
     },
