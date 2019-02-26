@@ -1,6 +1,6 @@
 {
   "name": "@banmafe/gen-skeleton",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "web site skeleton generator",
   "main": "index.js",
   "bin": {
@@ -49,14 +49,14 @@
     "memory-fs": "^0.4.1",
     "opn": "^5.3.0",
     "puppeteer": "^1.4.0",
+    "qgetopt": "^1.0.2",
     "qrcode": "^1.2.0",
     "sockjs": "^0.3.19",
     "sockjs-client": "^1.1.4",
     "tiza": "^2.1.0",
     "vue": "^2.5.16",
     "vuex": "^3.0.1",
-    "webpack-log": "^1.2.0",
-    "qgetopt": "^1.0.2"
+    "webpack-log": "^1.2.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

@@ -10,6 +10,7 @@ const QRCode = require('qrcode')
 const merge = require('lodash/merge')
 const { minify } = require('html-minifier')
 const { html2json, json2html } = require('html2json')
+const getopt = require('qgetopt').getopt
 const htmlBeautify = require('js-beautify').html_beautify
 const { htmlBeautifyConfig } = require('../config/config')
 const { defaultOptions, staticPath } = require('../config/config')
@@ -203,7 +204,7 @@ const getArgv = () => {
 }
 
 const getOptions = () => {
-  const { write, dir, url, port, target } = getArgv()
+  const { write, dir, url, port, target } = getopt(process.argv, '(-dir):(-url):(-port):(-target):(-write)')
   const userConfigPath = `${process.cwd()}/skeleton.config.js`
   const localUserOptions = fs.existsSync(userConfigPath) ? require(userConfigPath) : {} // eslint-disable-line
   return merge({ staticPath }, defaultOptions, localUserOptions, { write, dir, url, port, target })
