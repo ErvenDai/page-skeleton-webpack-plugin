@@ -11,7 +11,6 @@ const merge = require('lodash/merge')
 const { minify } = require('html-minifier')
 const { html2json, json2html } = require('html2json')
 const htmlBeautify = require('js-beautify').html_beautify
-const getopt = require('qgetopt').getopt
 const { htmlBeautifyConfig } = require('../config/config')
 const { defaultOptions, staticPath } = require('../config/config')
 
@@ -189,9 +188,22 @@ const getLocalIpAddress = () => {
 }
 
 const snakeToCamel = name => name.replace(/-([a-z])/g, (_, p1) => p1.toUpperCase())
+const getArgv = () => {
+  const processArg = process.argv
+  const processArgMap = {}
+  processArg.forEach((item) => {
+    const argArr = item.split('=')
+    if (argArr[1]) {
+      processArgMap[argArr[0].replace(/^-/, '')] = argArr[1]
+    } else {
+      processArgMap[argArr[0].replace(/^-/, '')] = true
+    }
+  })
+  return processArgMap
+}
 
 const getOptions = () => {
-  const { write, dir, url, port, target } = getopt(process.argv, '(url):(dir):(port):(target):(write)')
+  const { write, dir, url, port, target } = getArgv()
   const userConfigPath = `${process.cwd()}/skeleton.config.js`
   const localUserOptions = fs.existsSync(userConfigPath) ? require(userConfigPath) : {} // eslint-disable-line
   return merge({ staticPath }, defaultOptions, localUserOptions, { write, dir, url, port, target })

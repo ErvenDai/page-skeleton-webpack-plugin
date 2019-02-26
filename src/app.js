@@ -63,7 +63,7 @@ class App extends EventEmitter {
     // 找不到target也直接关掉应用
     const targetPath = path.resolve(process.cwd(), target)
     if (!fs.existsSync(targetPath)) {
-      console.log(`can not find the target ${targetPath}`)
+      console.log(`find target ${targetPath} failed`)
       process.exit()
     }
 
@@ -81,10 +81,9 @@ class App extends EventEmitter {
         qrCode: await generateQR(skeletonPageUrl),
         html
       }
-      console.log('skeletonPageUrl', skeletonPageUrl)
     } catch (err) {
       const message = err.message || 'generate skeleton screen failed.'
-      console.log('message', message)
+      console.log(message)
     }
   }
   async listen() {
