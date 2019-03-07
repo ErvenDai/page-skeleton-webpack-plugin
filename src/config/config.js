@@ -41,7 +41,7 @@ const defaultOptions = {
     removeAttributeQuotes: true,
     removeEmptyAttributes: false
   },
-  defer: 5000,
+  defer: 2000,
   excludes: [],
   remove: [],
   hide: [],

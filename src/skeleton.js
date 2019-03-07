@@ -3,7 +3,7 @@
 const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors')
 const { parse, toPlainObject, fromPlainObject, generate } = require('css-tree')
-const { sleep, genScriptContent, htmlMinify, collectImportantComments, getHtmlAttrString } = require('./util')
+const { genScriptContent, htmlMinify, collectImportantComments, getHtmlAttrString } = require('./util')
 
 class Skeleton {
   constructor(options = {}, log) {
@@ -49,9 +49,22 @@ class Skeleton {
   async makeSkeleton(page) {
     const { defer } = this.options
     await page.addScriptTag({ content: this.scriptContent })
-    await sleep(defer)
     await page.evaluate((options) => {
-      Skeleton.genSkeleton(options)
+      return new Promise((res) => {
+        if (document.readyState === 'complete') {
+          setTimeout(() => {
+            Skeleton.genSkeleton(options)
+            res()
+          }, defer)
+        } else {
+          document.addEventListener('load', () => {
+            setTimeout(() => {
+              Skeleton.genSkeleton(options)
+              res()
+            }, defer)
+          })
+        }
+      })
     }, this.options)
   }
 
@@ -79,25 +92,21 @@ class Skeleton {
     })
     // To build a map of all downloaded CSS (css use link tag)
     page.on('response', (response) => {
-      try {
-        const requestUrl = response.url()
-        const ct = response.headers()['content-type'] || ''
-        if (response.ok && !response.ok()) {
-          throw new Error(`${response.status} on ${requestUrl}`)
-        }
+      const requestUrl = response.url()
+      const ct = response.headers()['content-type'] || ''
+      if (response.ok && !response.ok()) {
+        console.log('page ajax error', `${response.status()} on ${requestUrl}`)
+      }
 
-        if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
-          response.text().then((text) => {
-            const ast = parse(text, {
-              parseValue: false,
-              parseRulePrelude: false
-            })
-            stylesheetAstObjects[requestUrl] = toPlainObject(ast)
-            stylesheetContents[requestUrl] = text
+      if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
+        response.text().then((text) => {
+          const ast = parse(text, {
+            parseValue: false,
+            parseRulePrelude: false
           })
-        }
-      } catch (err) {
-        console.log('page ajax error', err)
+          stylesheetAstObjects[requestUrl] = toPlainObject(ast)
+          stylesheetContents[requestUrl] = text
+        })
       }
     })
     page.on('pageerror', (error) => {
@@ -132,7 +141,7 @@ class Skeleton {
     }
 
     if (response && !response.ok()) {
-      throw new Error(`${response.status} on ${url}`)
+      throw new Error(`${response.status()} on ${url}`)
     }
 
 
@@ -300,6 +309,7 @@ class Skeleton {
       await this.browser.close()
       this.browser = null
     }
+
   }
 }
 

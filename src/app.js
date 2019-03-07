@@ -9,6 +9,7 @@ const open = require('opn')
 const sockjs = require('sockjs')
 const hasha = require('hasha')
 const express = require('express')
+const cheerio = require('cheerio')
 const MemoryFileSystem = require('memory-fs')
 const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
@@ -37,53 +38,30 @@ class App extends EventEmitter {
     this.app = null
     this.host = getLocalIpAddress()
     this.port = 7889
+    // 用来写入骨架屏的url
+    this.url = ''
+    // 需要写入骨架屏的目标文件
+    this.target = ''
     this.previewPageUrl = `http://${this.host}:${this.port}/preview.html`
     this.routesData = null
     this.sockets = []
     this.log = createLog(this.options)
   }
   async generateSkeletonHTML() {
-    const { targets, target, url, dir } = this.options
+    console.log('Generating skeleton,please wait...')
     const skeleton = await new Skeleton(this.options, this.log)
-    let resultUrl = ''
-    let resultTarget = ''
-    if (targets && dir && targets[dir]) {
-      resultUrl = targets[dir].url
-      resultTarget = targets[dir].target
-    }
-    if (url && target) {
-      resultUrl = url
-      resultTarget = target
-    }
-    if (!resultUrl || !resultTarget) {
-      console.log('please input url and target')
-      process.exit()
-    }
-
-    // 找不到target也直接关掉应用
-    const targetPath = path.resolve(process.cwd(), target)
-    if (!fs.existsSync(targetPath)) {
-      console.log(`find target ${targetPath} failed`)
-      process.exit()
-    }
-
-    try {
-      const { html, route, device } = await skeleton.genHtml(resultUrl)
-      // CACHE html
-      this.routesData = {}
-      const fileName = await writeMagicHtml(html)
-      const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
-      this.routesData[route] = {
-        targetFile: resultTarget,
-        url: resultUrl,
-        device,
-        skeletonPageUrl,
-        qrCode: await generateQR(skeletonPageUrl),
-        html
-      }
-    } catch (err) {
-      const message = err.message || 'generate skeleton screen failed.'
-      console.log(message)
+    const { html, route, device } = await skeleton.genHtml(this.url)
+    // CACHE html
+    this.routesData = {}
+    const fileName = await writeMagicHtml(html)
+    const skeletonPageUrl = `http://${this.host}:${this.port}/${fileName}`
+    this.routesData[route] = {
+      targetFile: this.target,
+      url: this.url,
+      device,
+      skeletonPageUrl,
+      qrCode: await generateQR(skeletonPageUrl),
+      html
     }
   }
   async listen() {
@@ -93,7 +71,7 @@ class App extends EventEmitter {
     /* eslint-enable no-multi-assign */
     await this.initRouters()
     listenServer.listen(this.port, () => {
-      console.log(`page-skeleton server listen at port: ${this.port}`)
+      console.log(`gen-skeleton server listen at port: ${this.port}`)
     })
   }
   async initRouters() {
@@ -121,16 +99,15 @@ class App extends EventEmitter {
     app.get('/:filename', async (req, res) => {
       const { filename } = req.params
       if (!/\.html$/.test(filename)) return false
-      let html = await promisify(fs.readFile)(path.resolve(__dirname, 'templates/notFound.html'), 'utf-8')
       try {
         // if I use `promisify(myFs.readFile)` if will occur an error
         // `TypeError: this[(fn + "Sync")] is not a function`,
         // So `readFile` need to hard bind `myFs`, maybe it's an issue of `memory-fs`
-        html = await promisify(myFs.readFile.bind(myFs))(path.resolve(__dirname, `${staticPath}/${filename}`), 'utf-8')
+        const html = await promisify(myFs.readFile.bind(myFs))(path.resolve(__dirname, `${staticPath}/${filename}`), 'utf-8')
+        res.send(html)
       } catch (err) {
         console.log(`When you request the preview html, ${err} ${filename}`)
       }
-      res.send(html)
     })
   }
   resiveSocketData(conn) {
@@ -193,17 +170,44 @@ class App extends EventEmitter {
       })
     })
   }
-  async run() {
-    await this.generateSkeletonHTML()
-    await this.listen().catch(err => console.log(err))
-    let appName = 'google chrome'
-    if (process.platform === 'win32') {
-      appName = 'chrome'
-    } else if (process.platform === 'linux') {
-      appName = 'google-chrome'
+  preCheck() {
+    const { targets, target, url, dir } = this.options
+    if (targets && dir && targets[dir]) {
+      this.url = targets[dir].url
+      this.target = targets[dir].target
     }
-    await this.initSocket()
-    open(this.previewPageUrl, { app: [appName, '--incognito'] })
+    if (url && target) {
+      this.url = url
+      this.target = target
+    }
+    if (!this.url || !this.target) {
+      console.log('please input url and target')
+      process.exit()
+    }
+    // 找不到target也直接关掉应用
+    const targetPath = path.resolve(process.cwd(), target)
+    if (!fs.existsSync(targetPath)) {
+      console.log(`find target ${targetPath} failed`)
+      process.exit()
+    }
+  }
+  async run() {
+    try {
+      this.preCheck()
+      await this.generateSkeletonHTML()
+      await this.listen().catch(err => console.log(err))
+      let appName = 'google chrome'
+      if (process.platform === 'win32') {
+        appName = 'chrome'
+      } else if (process.platform === 'linux') {
+        appName = 'google-chrome'
+      }
+      await this.initSocket()
+      open(this.previewPageUrl, { app: [appName, '--incognito'] })
+    } catch (err) {
+      console.log('run', err)
+      process.exit()
+    }
   }
 }
 
