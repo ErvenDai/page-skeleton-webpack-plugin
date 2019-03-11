@@ -204,10 +204,10 @@ const getArgv = () => {
 }
 
 const getOptions = () => {
-  const { write, dir, url, port, target } = getopt(process.argv, '(-dir):(-url):(-port):(-target):(-write)')
+  const { write, dir, url, port, target, id } = getopt(process.argv, '(-dir):(-url):(-port):(-target):(-id):(-write)')
   const userConfigPath = `${process.cwd()}/skeleton.config.js`
   const localUserOptions = fs.existsSync(userConfigPath) ? require(userConfigPath) : {} // eslint-disable-line
-  return merge({ staticPath }, defaultOptions, localUserOptions, { write, dir, url, port, target })
+  return merge({ staticPath }, defaultOptions, localUserOptions, { write, dir, url, port, target, id })
 }
 
 module.exports = {

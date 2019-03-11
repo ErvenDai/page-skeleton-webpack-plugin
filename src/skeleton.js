@@ -1,11 +1,15 @@
 'use strict'
 
+const { promisify } = require('util')
+const fs = require('fs')
+const path = require('path')
+const readline = require('readline')
 const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors')
 const { parse, toPlainObject, fromPlainObject, generate } = require('css-tree')
-// const cheerio = require('cheerio')
+const cheerio = require('cheerio')
 const uncss = require('uncss')
-const { genScriptContent, htmlMinify, collectImportantComments } = require('./util')
+const { genScriptContent, htmlMinify } = require('./util')
 
 class Skeleton {
   constructor(options = {}, log) {
@@ -14,6 +18,7 @@ class Skeleton {
       this.browser = null
       this.scriptContent = ''
       this.pages = new Set()
+      this.currentPage = null
       this.log = log
       await this.initialize()
       return this
@@ -41,115 +46,7 @@ class Skeleton {
     await page.emulate(devices[device])
     return page
   }
-
-  async closePage(page) {
-    await page.close()
-    return this.pages.delete(page)
-  }
-
-  // Generate the skeleton screen for the specific `page`
-  async makeSkeleton(page) {
-    await page.addScriptTag({ content: this.scriptContent })
-    await page.evaluate((options) => {
-      return new Promise((res) => {
-        if (document.readyState === 'complete') {
-          setTimeout(() => {
-            Skeleton.genSkeleton(options)
-            res()
-          }, options.defer)
-        } else {
-          document.addEventListener('load', () => {
-            setTimeout(() => {
-              Skeleton.genSkeleton(options)
-              res()
-            }, options.defer)
-          })
-        }
-      })
-    }, this.options)
-  }
-
-  async genHtml(url, route) {
-    const { debug } = this.options
-    const stylesheetAstObjects = {}
-    const stylesheetContents = {}
-
-    const page = await this.newPage()
-    if (debug) {
-      page.on('console', (...args) => {
-        this.log.info(...args)
-      })
-    }
-    const { cookies, storagies = {}, sessionStoragies = {} } = this.options
-
-    await page.setRequestInterception(true)
-    page.on('request', (request) => {
-      if (stylesheetAstObjects[request.url]) {
-        // don't need to download the same assets
-        request.abort()
-      } else {
-        request.continue()
-      }
-    })
-    // To build a map of all downloaded CSS (css use link tag)
-    page.on('response', (response) => {
-      const requestUrl = response.url()
-      const ct = response.headers()['content-type'] || ''
-      if (response.ok && !response.ok()) {
-        console.log('page ajax error', `${response.status()} on ${requestUrl}`)
-      }
-
-      if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
-        response.text().then((text) => {
-          const ast = parse(text, {
-            parseValue: false,
-            parseRulePrelude: false
-          })
-          stylesheetAstObjects[requestUrl] = toPlainObject(ast)
-          stylesheetContents[requestUrl] = text
-        })
-      }
-    })
-    page.on('pageerror', (error) => {
-      throw error
-    })
-
-
-    if (cookies.length) {
-      await page.setCookie(...cookies.filter(cookie => typeof cookie === 'object'))
-    }
-
-    const response = await page.goto(url, { waitUntil: 'networkidle2' })
-
-    if (Object.keys(storagies).length) {
-      await page.evaluate((storagies) => {
-        for (const item in storagies) {
-          if (storagies.hasOwnProperty(item)) {
-            localStorage.setItem(item, storagies[item])
-          }
-        }
-      }, storagies)
-    }
-
-    if (Object.keys(sessionStoragies).length) {
-      await page.evaluate((sessionStoragies) => {
-        for (const item in sessionStoragies) {
-          if (sessionStoragies.hasOwnProperty(item)) {
-            sessionStorage.setItem(item, sessionStoragies[item])
-          }
-        }
-      }, sessionStoragies)
-    }
-
-    if (response && !response.ok()) {
-      throw new Error(`${response.status()} on ${url}`)
-    }
-
-
-    await this.makeSkeleton(page)
-
-    const { styles, cleanedHtml, htmlInfo } = await page.evaluate(() => Skeleton.getHtmlAndStyle())
-
+  async joinAndClearStyle({ cleanedHtml, styles, stylesheetAstObjects }) {
     const stylesheetAstArray = styles.map((style) => {
       const ast = parse(style, {
         parseValue: false,
@@ -158,7 +55,7 @@ class Skeleton {
       return toPlainObject(ast)
     })
 
-    const cleanedCSS = await page.evaluate(async (stylesheetAstObjects, stylesheetAstArray) => { // eslint-disable-line no-shadow
+    const cleanedCSS = await this.currentPage.evaluate(async (stylesheetAstObjects, stylesheetAstArray) => { // eslint-disable-line no-shadow
       const DEAD_OBVIOUS = new Set(['*', 'body', 'html'])
       const cleanedStyles = []
 
@@ -261,7 +158,138 @@ class Skeleton {
         }
       })
     })
+    return finalCss
+  }
+  async closePage(page) {
+    await page.close()
+    return this.pages.delete(page)
+  }
 
+  // Generate the skeleton screen for the specific `page`
+  async makeSkeleton(page) {
+    await page.addScriptTag({ content: this.scriptContent })
+    await page.evaluate((options) => {
+      return new Promise((res) => {
+        if (document.readyState === 'complete') {
+          setTimeout(() => {
+            Skeleton.genSkeleton(options)
+            res()
+          }, options.defer)
+        } else {
+          document.addEventListener('load', () => {
+            setTimeout(() => {
+              Skeleton.genSkeleton(options)
+              res()
+            }, options.defer)
+          })
+        }
+      })
+    }, this.options)
+  }
+
+  async genHtml(url, route) {
+    const { debug } = this.options
+    const stylesheetAstObjects = {}
+    const stylesheetContents = {}
+
+    const page = this.currentPage = await this.newPage() // eslint-disable-line
+    if (debug) {
+      page.on('console', (...args) => {
+        this.log.info(...args)
+      })
+    }
+    const { cookies, storagies = {}, sessionStoragies = {} } = this.options
+
+    await page.setRequestInterception(true)
+    page.on('request', (request) => {
+      if (stylesheetAstObjects[request.url]) {
+        // don't need to download the same assets
+        request.abort()
+      } else {
+        request.continue()
+      }
+    })
+    // To build a map of all downloaded CSS (css use link tag)
+    page.on('response', (response) => {
+      const requestUrl = response.url()
+      const ct = response.headers()['content-type'] || ''
+      if (response.ok && !response.ok()) {
+        console.log('page ajax error', `${response.status()} on ${requestUrl}`)
+      }
+
+      if (ct.indexOf('text/css') > -1 || /\.css$/i.test(requestUrl)) {
+        response.text().then((text) => {
+          const ast = parse(text, {
+            parseValue: false,
+            parseRulePrelude: false
+          })
+          stylesheetAstObjects[requestUrl] = toPlainObject(ast)
+          stylesheetContents[requestUrl] = text
+        })
+      }
+    })
+    page.on('pageerror', (error) => {
+      throw error
+    })
+
+
+    if (cookies.length) {
+      await page.setCookie(...cookies.filter(cookie => typeof cookie === 'object'))
+    }
+
+    const response = await page.goto(url, { waitUntil: 'networkidle2' })
+
+    if (Object.keys(storagies).length) {
+      await page.evaluate((storagies) => {
+        for (const item in storagies) {
+          if (storagies.hasOwnProperty(item)) {
+            localStorage.setItem(item, storagies[item])
+          }
+        }
+      }, storagies)
+    }
+
+    if (Object.keys(sessionStoragies).length) {
+      await page.evaluate((sessionStoragies) => {
+        for (const item in sessionStoragies) {
+          if (sessionStoragies.hasOwnProperty(item)) {
+            sessionStorage.setItem(item, sessionStoragies[item])
+          }
+        }
+      }, sessionStoragies)
+    }
+
+    if (response && !response.ok()) {
+      throw new Error(`${response.status()} on ${url}`)
+    }
+
+
+    await this.makeSkeleton(page)
+
+    const { styles, cleanedHtml, htmlInfo } = await page.evaluate(() => Skeleton.getHtmlAndStyle())
+
+    const { target, id } = this.options
+
+    const targetContent = await promisify(fs.readFile)(path.resolve(process.cwd(), target), 'utf-8')
+    const $ = cheerio.load(targetContent)
+    const $id = $(`#${id}`)
+    // 说明有旧的节点数据
+    const isUseOldSkeleton = await new Promise((res) => {
+      if ($id && $id.children().length > 0) {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+        rl.question('Do you want to use old skeleton in target id? [y/n]     ', (answer) => {
+          rl.close()
+          res(answer === 'y')
+        })
+      }
+    })
+    const oldCss = Array.from($id.children()).map(item => item.type === 'style' ? $(item).html() : '').join('') // eslint-disable-line
+    const oldHtml = Array.from($id.children()).map(item => item.type !== 'style' ? $(item).html() : '').join('')// eslint-disable-line
+    const finalCss = isUseOldSkeleton ? oldCss : await this.joinAndClearStyle({ cleanedHtml, styles, stylesheetAstObjects })
+    const finalHtml = isUseOldSkeleton ? oldHtml : cleanedHtml
     // add font-size dpr
     const { htmlAttrStr, metaStr, bodyStyleStr } = htmlInfo
     // * ::-webkit-scrollbar { width: 0 !important }
@@ -276,7 +304,7 @@ class Skeleton {
         </style>
       </head>
       <body ${bodyStyleStr}>
-        ${cleanedHtml}
+        ${finalHtml}
       </body>
       </html>`
     const result = {
