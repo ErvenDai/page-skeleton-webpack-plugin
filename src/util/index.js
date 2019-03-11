@@ -4,6 +4,7 @@ const { promisify } = require('util')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const cheerio = require('cheerio')
 const fse = require('fs-extra')
 const weblog = require('webpack-log')
 const QRCode = require('qrcode')
@@ -42,12 +43,13 @@ async function writeShell(routesData, options) {
 }
 
 async function injectSkeleton(routeData, options) {
-  const { minify: minOptions } = options
+  const { minify: minOptions, id } = options
   const { targetFile, html } = routeData
   const minifiedHtml = htmlMinify(getCleanedShellHtml(html), minOptions)
   const originHtml = await promisify(fs.readFile)(path.resolve(process.cwd(), targetFile), 'utf-8')
-  const finalHtml = originHtml.replace('<!-- shell -->', minifiedHtml)
-  await promisify(fs.writeFile)(targetFile, finalHtml, 'utf-8')
+  const $ = cheerio.load(originHtml)
+  $(`#${id}`).html(minifiedHtml)
+  await promisify(fs.writeFile)(targetFile, $.html(), 'utf-8')
 }
 
 
@@ -124,16 +126,18 @@ const collectImportantComments = (css) => {
 }
 
 const outputSkeletonScreen = async (originHtml, options, log) => {
-  const { pathname, staticDir, routes } = options
+  const { pathname, staticDir, routes, id } = options
   return Promise.all(routes.map(async (route) => {
     const trimedRoute = route.replace(/\//g, '')
     const filePath = path.join(pathname, trimedRoute ? `${trimedRoute}.html` : 'index.html')
     const html = await promisify(fs.readFile)(filePath, 'utf-8')
-    const finalHtml = originHtml.replace('<!-- shell -->', html)
     const outputDir = path.join(staticDir, route)
     const outputFile = path.join(outputDir, 'index.html')
     await fse.ensureDir(outputDir)
-    await promisify(fs.writeFile)(outputFile, finalHtml, 'utf-8')
+    const $ = cheerio.load(originHtml)
+    $(`#${id}`).html(html)
+    await promisify(fs.writeFile)(outputFile, $.html(), 'utf-8')
+
     log(`write ${outputFile} successfully in ${route}`)
     return Promise.resolve()
   }))

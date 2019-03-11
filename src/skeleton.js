@@ -284,6 +284,8 @@ class Skeleton {
           rl.close()
           res(answer === 'y')
         })
+      } else {
+        res(false)
       }
     })
     const oldCss = Array.from($id.children()).map(item => item.type === 'style' ? $(item).html() : '').join('') // eslint-disable-line

@@ -1,19 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head></head>
-  <body>
-    <div id="skeleton">
-      <style>
-        a {
-          background: red;
-        }
-      </style>
-      <div>
-        <h1>还好</h1>
-        <div>
-          <div>2</div>
-        </div>
-      </div>
-    </div>
-  </body>
+
+<head>
+  <!--#include file="/page/app/includes/head-pre.shtml"-->
+  <!-- 上报通道标识 -->
+  <meta name="lx:category" content="rider_community">
+  <!-- 关闭自动上报 -->
+  <meta name="lx:autopv" content="off"/>
+  <link rel="dns-prefetch" href="//analytics.meituan.net"/>
+  <link rel="dns-prefetch" href="//wreport.meituan.net"/>
+  <link rel="dns-prefetch" href="//report.meituan.net"/>
+  <!--#set var="owl-project" value="banma-rider-community"-->
+  <title>骑手社区</title>
+  <script>
+    window.HEAD_TIME = Date.now();
+  </script>
+  <link rel="stylesheet" href="/dist/app/riderCommunity/app-vendor.pack.css">
+  <link rel="stylesheet" href="/static/app/riderCommunity/fonts/iconfont.css">
+  <!--#include file="/page/app/includes/head-post.shtml"-->
+</head>
+<body>
+  <div id="app"></div>
+  <div id="skeleton">
+    qq
+  </div>
+  <!--#include file="/page/app/includes/body-pre.shtml"-->
+  <script src="//s3plus.meituan.net/v1/mss_0ddf9b250a1b4db28fb1d9ad764b2853/banma-resource/cdn/zepto/1.1.6/zepto.min.js"></script>
+  <script src="/dist/app/riderCommunity/app-vendor.pack.js"></script>
+  <script src="/dist/app/riderCommunity/app-entry.pack.js"></script>
+  <!--#include file="/page/app/includes/body-post.shtml"-->
+</body>
 </html>
