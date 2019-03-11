@@ -721,7 +721,6 @@ var Skeleton = (function (exports) {
         addShine();
         break
       default:
-        addSpin();
         break
     }
   }

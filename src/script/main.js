@@ -175,7 +175,6 @@ function genSkeleton(options) {
       addShine()
       break
     default:
-      addSpin()
       break
   }
 }
