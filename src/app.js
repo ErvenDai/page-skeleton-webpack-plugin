@@ -9,7 +9,6 @@ const open = require('opn')
 const sockjs = require('sockjs')
 const hasha = require('hasha')
 const express = require('express')
-const cheerio = require('cheerio')
 const MemoryFileSystem = require('memory-fs')
 const { staticPath } = require('./config/config')
 const Skeleton = require('./skeleton')
@@ -49,7 +48,7 @@ class App extends EventEmitter {
   }
   async generateSkeletonHTML() {
     console.log('Generating skeleton,please wait...')
-    const skeleton = await new Skeleton(this.options, this.log)
+    const skeleton = await new Skeleton({ ...this.options, target: this.target }, this.log)
     const { html, route, device } = await skeleton.genHtml(this.url)
     // CACHE html
     this.routesData = {}

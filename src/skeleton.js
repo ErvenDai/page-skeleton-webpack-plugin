@@ -3,7 +3,9 @@
 const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors')
 const { parse, toPlainObject, fromPlainObject, generate } = require('css-tree')
-const { genScriptContent, htmlMinify, collectImportantComments, getHtmlAttrString } = require('./util')
+// const cheerio = require('cheerio')
+const uncss = require('uncss')
+const { genScriptContent, htmlMinify, collectImportantComments } = require('./util')
 
 class Skeleton {
   constructor(options = {}, log) {
@@ -47,7 +49,6 @@ class Skeleton {
 
   // Generate the skeleton screen for the specific `page`
   async makeSkeleton(page) {
-    const { defer } = this.options
     await page.addScriptTag({ content: this.scriptContent })
     await page.evaluate((options) => {
       return new Promise((res) => {
@@ -55,13 +56,13 @@ class Skeleton {
           setTimeout(() => {
             Skeleton.genSkeleton(options)
             res()
-          }, defer)
+          }, options.defer)
         } else {
           document.addEventListener('load', () => {
             setTimeout(() => {
               Skeleton.genSkeleton(options)
               res()
-            }, defer)
+            }, options.defer)
           })
         }
       })
@@ -242,35 +243,42 @@ class Skeleton {
 
       return cleanedStyles
     }, stylesheetAstObjects, stylesheetAstArray)
-
     const allCleanedCSS = cleanedCSS.map((ast) => {
       const cleanedAst = fromPlainObject(ast)
       return generate(cleanedAst)
     }).join('\n')
 
-    const finalCss = collectImportantComments(allCleanedCSS)
-    // finalCss = minify(finalCss).css ? `html-minifier` use `clean-css` as css minifier
-    // so don't need to use another mimifier.
+    const finalCss = await new Promise((res, rej) => {
+      uncss(cleanedHtml, {
+        raw: allCleanedCSS,
+        timeout: 5000,
+        report: true
+      }, (error, output) => {
+        if (output) {
+          res(output)
+        } else {
+          rej(error)
+        }
+      })
+    })
+
     // add font-size dpr
     const { htmlAttrStr, metaStr, bodyStyleStr } = htmlInfo
+    // * ::-webkit-scrollbar { width: 0 !important }
 
-    let shellHtml = `<!DOCTYPE html>
+    const shellHtml = `<!DOCTYPE html>
       <html ${htmlAttrStr}>
       <head>
         ${metaStr}
         <title>Page Skeleton</title>
         <style>
-          * ::-webkit-scrollbar { width: 0 !important }
-          $$css$$
+          ${finalCss}
         </style>
       </head>
       <body ${bodyStyleStr}>
-        $$html$$
+        ${cleanedHtml}
       </body>
       </html>`
-    shellHtml = shellHtml
-      .replace('$$css$$', finalCss)
-      .replace('$$html$$', cleanedHtml)
     const result = {
       originalRoute: route || '',
       route: await page.evaluate('window.location.pathname'),
