@@ -291,7 +291,8 @@ class Skeleton {
     const oldCss = Array.from($id.children()).map(item => item.type === 'style' ? $(item).html() : '').join('') // eslint-disable-line
     const oldHtml = Array.from($id.children()).map(item => item.type !== 'style' ? $(item).html() : '').join('')// eslint-disable-line
     const finalCss = isUseOldSkeleton ? oldCss : await this.joinAndClearStyle({ cleanedHtml, styles, stylesheetAstObjects })
-    const finalHtml = isUseOldSkeleton ? oldHtml : cleanedHtml
+    const wrapedCleanedHtml = this.options.isPositionAbsolute ? `<div style="position: absolute; left: 0; top: 0;z-index: 100;width: 100%; height: 100%">${cleanedHtml}</div>` : cleanedHtml
+    const finalHtml = isUseOldSkeleton ? oldHtml : wrapedCleanedHtml
     // add font-size dpr
     const { htmlAttrStr, metaStr, bodyStyleStr } = htmlInfo
     // * ::-webkit-scrollbar { width: 0 !important }

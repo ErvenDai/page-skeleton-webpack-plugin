@@ -1,6 +1,6 @@
 {
   "name": "@banmafe/gen-skeleton",
-  "version": "0.3.11",
+  "version": "0.3.13",
   "description": "web site skeleton generator",
   "main": "index.js",
   "bin": {
