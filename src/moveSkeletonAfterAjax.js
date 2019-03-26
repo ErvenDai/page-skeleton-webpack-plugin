@@ -1,8 +1,6 @@
-// 'use strict'
-import axios from 'axios';
-const defaultTimeout = 2000;
-
-export function moveSkeleton(id, timeout) {
+import axios from 'axios'; // eslint-disable-line
+const defaultTimeout = 3000;
+export default function moveSkeleton(id, waiting, timeout) {
   let isHasMove = false;
   let requestCount = 0;
   let responseCount = 0;
@@ -27,7 +25,7 @@ export function moveSkeleton(id, timeout) {
       setTimeout(() => {
         const skeleton = document.getElementById(id);
         if(skeleton) document.body.removeChild(skeleton);
-      }, 0);
+      }, waiting || 0);
     }
     return response;
   });

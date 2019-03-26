@@ -47,7 +47,7 @@ async function injectSkeleton(routeData, options) {
   const { targetFile, html } = routeData
   const minifiedHtml = htmlMinify(getCleanedShellHtml(html), minOptions)
   const originHtml = await promisify(fs.readFile)(path.resolve(process.cwd(), targetFile), 'utf-8')
-  const $ = cheerio.load(originHtml)
+  const $ = cheerio.load(originHtml, { decodeEntities: false })
   $(`#${id}`).html(minifiedHtml)
   await promisify(fs.writeFile)(targetFile, $.html(), 'utf-8')
 }
@@ -134,7 +134,7 @@ const outputSkeletonScreen = async (originHtml, options, log) => {
     const outputDir = path.join(staticDir, route)
     const outputFile = path.join(outputDir, 'index.html')
     await fse.ensureDir(outputDir)
-    const $ = cheerio.load(originHtml)
+    const $ = cheerio.load(originHtml, { decodeEntities: false })
     $(`#${id}`).html(html)
     await promisify(fs.writeFile)(outputFile, $.html(), 'utf-8')
 
